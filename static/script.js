@@ -4,12 +4,14 @@ const searchBtn = document.getElementById("search-btn");
 const selectedRegionEl = document.getElementById("selected-region");
 const statusEl = document.getElementById("status-msg");
 const resultsEl = document.getElementById("results");
+const loadMoreBtn = document.getElementById("load-more-btn");
 const realEstateTypeEl = document.getElementById("real-estate-type");
 const tradeTypeEl = document.getElementById("trade-type");
 
 let selectedRegion = null;
 let debounceTimer = null;
 let activeIndex = -1;
+let currentPage = 1;
 
 function debounce(fn, delay) {
   return (...args) => {
@@ -99,18 +101,30 @@ document.addEventListener("click", (e) => {
   if (!e.target.closest(".autocomplete")) hideSuggestions();
 });
 
-searchBtn.addEventListener("click", async () => {
+searchBtn.addEventListener("click", () => {
   if (!selectedRegion) return;
-
-  statusEl.textContent = "";
+  currentPage = 1;
   resultsEl.innerHTML = "";
+  fetchListings({ append: false });
+});
+
+loadMoreBtn.addEventListener("click", () => {
+  currentPage += 1;
+  fetchListings({ append: true });
+});
+
+async function fetchListings({ append }) {
+  statusEl.textContent = "";
   searchBtn.disabled = true;
-  searchBtn.textContent = "조회 중...";
+  loadMoreBtn.disabled = true;
+  const triggerBtn = append ? loadMoreBtn : searchBtn;
+  triggerBtn.textContent = "조회 중...";
 
   const params = new URLSearchParams({
     cortarNo: selectedRegion.code,
     realEstateType: realEstateTypeEl.value,
     tradeType: tradeTypeEl.value,
+    page: String(currentPage),
   });
 
   try {
@@ -119,25 +133,29 @@ searchBtn.addEventListener("click", async () => {
 
     if (!res.ok) {
       statusEl.textContent = `${data.error || "조회에 실패했습니다."} ${data.detail ? `(${data.detail})` : ""}`;
+      loadMoreBtn.classList.add("hidden");
       return;
     }
 
-    renderArticles(data.articles);
+    renderArticles(data.articles, { append });
+    loadMoreBtn.classList.toggle("hidden", !data.isMoreData);
   } catch (err) {
     statusEl.textContent = `요청 중 오류가 발생했습니다: ${err.message}`;
+    loadMoreBtn.classList.add("hidden");
   } finally {
     searchBtn.disabled = false;
-    searchBtn.textContent = "매물 조회";
+    loadMoreBtn.disabled = false;
+    triggerBtn.textContent = append ? "더보기" : "매물 조회";
   }
-});
+}
 
-function renderArticles(articles) {
-  if (!articles.length) {
+function renderArticles(articles, { append }) {
+  if (!append && !articles.length) {
     resultsEl.innerHTML = '<p class="status-msg" style="color:#6b7280">조회된 매물이 없습니다.</p>';
     return;
   }
 
-  resultsEl.innerHTML = articles
+  const html = articles
     .map(
       (a) => `
     <article class="article-card">
@@ -152,4 +170,6 @@ function renderArticles(articles) {
   `
     )
     .join("");
+
+  resultsEl.innerHTML = append ? resultsEl.innerHTML + html : html;
 }
