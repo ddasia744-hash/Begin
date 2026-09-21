@@ -1,0 +1,187 @@
+:root {
+  --bg: #f7f8fa;
+  --card-bg: #ffffff;
+  --border: #e2e5ea;
+  --text: #1c1e21;
+  --muted: #6b7280;
+  --accent: #03c75a;
+  --accent-dark: #02a34a;
+}
+
+* { box-sizing: border-box; }
+
+body {
+  margin: 0;
+  font-family: -apple-system, "Apple SD Gothic Neo", "Malgun Gothic", sans-serif;
+  background: var(--bg);
+  color: var(--text);
+}
+
+.app {
+  max-width: 720px;
+  margin: 0 auto;
+  padding: 32px 20px 80px;
+}
+
+h1 {
+  font-size: 22px;
+  margin-bottom: 20px;
+}
+
+.search-box {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.autocomplete {
+  position: relative;
+}
+
+#region-input {
+  width: 100%;
+  padding: 12px 14px;
+  font-size: 15px;
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  outline: none;
+}
+
+#region-input:focus {
+  border-color: var(--accent);
+}
+
+.suggestions {
+  position: absolute;
+  top: 100%;
+  left: 0;
+  right: 0;
+  margin-top: 4px;
+  background: var(--card-bg);
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  max-height: 260px;
+  overflow-y: auto;
+  list-style: none;
+  padding: 4px;
+  z-index: 10;
+  box-shadow: 0 8px 20px rgba(0, 0, 0, 0.08);
+}
+
+.suggestions.hidden { display: none; }
+
+.suggestions li {
+  padding: 10px 12px;
+  border-radius: 6px;
+  cursor: pointer;
+  font-size: 14px;
+}
+
+.suggestions li:hover,
+.suggestions li.active {
+  background: #eef9f1;
+}
+
+.suggestions .region-code {
+  color: var(--muted);
+  font-size: 12px;
+  margin-left: 6px;
+}
+
+.filters {
+  display: flex;
+  gap: 8px;
+}
+
+.filters select {
+  padding: 10px 12px;
+  border-radius: 8px;
+  border: 1px solid var(--border);
+  font-size: 14px;
+  background: var(--card-bg);
+}
+
+#search-btn {
+  margin-left: auto;
+  padding: 10px 20px;
+  border: none;
+  border-radius: 8px;
+  background: var(--accent);
+  color: #fff;
+  font-size: 14px;
+  font-weight: 600;
+  cursor: pointer;
+}
+
+#search-btn:disabled {
+  background: #c9ccd1;
+  cursor: not-allowed;
+}
+
+#search-btn:not(:disabled):hover {
+  background: var(--accent-dark);
+}
+
+.selected-region {
+  margin: 16px 0 0;
+  font-size: 13px;
+  color: var(--muted);
+  min-height: 18px;
+}
+
+.status-msg {
+  margin: 8px 0 0;
+  font-size: 13px;
+  color: #d64545;
+  min-height: 18px;
+}
+
+.results {
+  margin-top: 16px;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.article-card {
+  background: var(--card-bg);
+  border: 1px solid var(--border);
+  border-radius: 10px;
+  padding: 14px 16px;
+}
+
+.article-card .row1 {
+  display: flex;
+  justify-content: space-between;
+  align-items: baseline;
+  gap: 8px;
+}
+
+.article-card .name {
+  font-weight: 600;
+  font-size: 15px;
+}
+
+.article-card .price {
+  font-weight: 700;
+  color: var(--accent-dark);
+  white-space: nowrap;
+}
+
+.article-card .meta {
+  margin-top: 4px;
+  font-size: 13px;
+  color: var(--muted);
+}
+
+.article-card .desc {
+  margin-top: 6px;
+  font-size: 13px;
+  color: #444;
+}
+
+.article-card .realtor {
+  margin-top: 8px;
+  font-size: 12px;
+  color: #9aa0a6;
+}

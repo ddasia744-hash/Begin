@@ -1,0 +1,42 @@
+<!doctype html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>네이버 부동산 매물 조회</title>
+<link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+</head>
+<body>
+  <main class="app">
+    <h1>네이버 부동산 매물 조회</h1>
+
+    <section class="search-box">
+      <div class="autocomplete">
+        <input id="region-input" type="text" placeholder="지역명을 입력하세요 (예: 강남구 역삼동)" autocomplete="off">
+        <ul id="region-suggestions" class="suggestions hidden"></ul>
+      </div>
+
+      <div class="filters">
+        <select id="real-estate-type">
+          {% for code, label in real_estate_types.items() %}
+          <option value="{{ code }}">{{ label }}</option>
+          {% endfor %}
+        </select>
+        <select id="trade-type">
+          {% for code, label in trade_types.items() %}
+          <option value="{{ code }}">{{ label }}</option>
+          {% endfor %}
+        </select>
+        <button id="search-btn" disabled>매물 조회</button>
+      </div>
+    </section>
+
+    <p id="selected-region" class="selected-region"></p>
+    <p id="status-msg" class="status-msg"></p>
+
+    <section id="results" class="results"></section>
+  </main>
+
+  <script src="{{ url_for('static', filename='script.js') }}"></script>
+</body>
+</html>
