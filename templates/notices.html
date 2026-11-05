@@ -1,0 +1,97 @@
+<!doctype html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>공급사 공지 분석</title>
+<link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+<link rel="stylesheet" href="{{ url_for('static', filename='notices.css') }}">
+</head>
+<body>
+  <main class="app wide">
+    <h1>공급사 공지 → 품절·단가 변동 표</h1>
+    <p class="lead">카카오톡 공지방의 '대화 내보내기' 파일(.txt)을 올리면 품절, 단가 인상·인하, 특가, 신규 상품을 표로 정리합니다.
+      파일은 서버에 저장하지 않고 이 요청에서만 읽습니다.</p>
+
+    <form class="notice-form" method="post" action="{{ url_for('notices.notices_result') }}" enctype="multipart/form-data">
+      <label class="field full">대화 파일 (.txt)
+        <input type="file" name="chat" accept=".txt,text/plain" required>
+      </label>
+      <label class="field">관심 품목 (쉼표로 구분)
+        <input type="text" name="watch" value="{{ form.get('watch', '') }}" placeholder="예: 감귤, 사과, E05">
+      </label>
+      <label class="field">공급사 이름 (비우면 자동)
+        <input type="text" name="sender" value="{{ form.get('sender', '') }}" placeholder="예: 팡이유통">
+      </label>
+      <label class="field">시작일
+        <input type="date" name="since" value="{{ form.get('since', '') }}">
+      </label>
+      <label class="field">종료일
+        <input type="date" name="until" value="{{ form.get('until', '') }}">
+      </label>
+      <fieldset class="field full types">
+        <legend>유형 (선택 안 하면 전체)</legend>
+        {% for t in event_types %}
+          <label class="chip"><input type="checkbox" name="types" value="{{ t }}" {% if types and t in types %}checked{% endif %}> {{ t }}</label>
+        {% endfor %}
+      </fieldset>
+      <div class="actions full">
+        <button type="submit" name="output" value="html">분석하기</button>
+        <button type="submit" name="output" value="csv" class="secondary">CSV 내려받기</button>
+      </div>
+    </form>
+
+    {% if error %}<p class="error">{{ error }}</p>{% endif %}
+
+    {% if result %}
+      {% set s = result.summary %}
+      <section class="summary">
+        <div class="stat"><span class="num">{{ "{:,}".format(s.total) }}</span><span class="label">이벤트</span></div>
+        <div class="stat"><span class="num">{{ "{:,}".format(result.unavailable|length) }}</span><span class="label">현재 품절 상품</span></div>
+        <div class="stat"><span class="num">{{ "{:,}".format(result.messages) }}</span><span class="label">읽은 메시지</span></div>
+        {% if s.first %}<div class="stat"><span class="num small">{{ s.first.strftime('%Y-%m-%d') }} ~ {{ s.last.strftime('%Y-%m-%d') }}</span><span class="label">기간</span></div>{% endif %}
+      </section>
+
+      <p class="by-type">{% for t, n in s.by_type %}<span class="tag t-{{ t }}">{{ t }} {{ n }}</span>{% endfor %}</p>
+      {% if s.soldout_codes %}
+        <p class="muted">품절이 잦은 공급 코드: {% for c, n in s.soldout_codes %}{{ c }}({{ n }}){% if not loop.last %}, {% endif %}{% endfor %}</p>
+      {% endif %}
+
+      <h2>현재 품절 상품 <small>마지막 공지가 품절인 상품 — 내 스토어에서 판매 중지 확인</small></h2>
+      {% if result.unavailable %}
+      <div class="table-wrap"><table>
+        <thead><tr><th>품절 공지 시각</th><th>코드</th><th>상품</th></tr></thead>
+        <tbody>
+        {% for r in result.unavailable %}
+          <tr><td>{{ r.when.strftime('%m-%d %H:%M') }}</td><td>{{ r.code }}</td><td>{{ r.product }}</td></tr>
+        {% endfor %}
+        </tbody>
+      </table></div>
+      {% else %}<p class="muted">없음</p>{% endif %}
+
+      <h2>상품별 현재 상태 <small>최신순</small></h2>
+      <div class="table-wrap"><table>
+        <thead><tr><th>마지막 공지</th><th>상태</th><th>코드</th><th>상품</th><th class="num">마지막 가격</th><th class="num">공지 수</th></tr></thead>
+        <tbody>
+        {% for r in result.status %}
+          <tr><td>{{ r.when.strftime('%m-%d %H:%M') }}</td><td><span class="tag t-{{ r.type }}">{{ r.type }}</span></td><td>{{ r.code }}</td><td>{{ r.product }}</td>
+            <td class="num">{% if r.price %}{{ "{:,}".format(r.price) }}{% endif %}</td><td class="num">{{ r.events }}</td></tr>
+        {% endfor %}
+        </tbody>
+      </table></div>
+
+      <h2>전체 이벤트 <small>최신순{% if result.truncated %}, 앞 500건만 표시 — 전체는 CSV로{% endif %}</small></h2>
+      <div class="table-wrap"><table>
+        <thead><tr><th>시각</th><th>유형</th><th>코드</th><th>상품</th><th class="num">가격</th><th>메모</th></tr></thead>
+        <tbody>
+        {% for e in result.events %}
+          <tr><td>{{ e.when.strftime('%m-%d %H:%M') }}</td><td><span class="tag t-{{ e.type }}">{{ e.type }}</span></td><td>{{ e.code }}</td><td>{{ e.product }}</td>
+            <td class="num">{% if e.price_before is not none %}{{ "{:,}".format(e.price_before) }} → {{ "{:,}".format(e.price_after) }}{% elif e.price is not none %}{{ "{:,}".format(e.price) }}{% endif %}</td>
+            <td>{{ e.note }}</td></tr>
+        {% endfor %}
+        </tbody>
+      </table></div>
+    {% endif %}
+  </main>
+</body>
+</html>

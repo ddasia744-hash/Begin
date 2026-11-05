@@ -7,8 +7,11 @@ import requests
 from flask import Flask, jsonify, render_template, request
 
 import region_lookup
+from notice_parser.web import bp as notices_bp
 
 app = Flask(__name__)
+app.config["MAX_CONTENT_LENGTH"] = 20 * 1024 * 1024  # 대화 파일 업로드 최대 20MB
+app.register_blueprint(notices_bp)
 
 NAVER_ARTICLES_URL = "https://new.land.naver.com/api/articles"
 NAVER_HEADERS = {
