@@ -35,6 +35,47 @@
       ]
     },
     {
+      "tier": "공식몰",
+      "name": "룰루레몬 공식",
+      "aliases": [
+        "lululemon",
+        "룰루레몬"
+      ]
+    },
+    {
+      "tier": "공식몰",
+      "name": "푸마 공식",
+      "aliases": [
+        "puma",
+        "푸마"
+      ]
+    },
+    {
+      "tier": "공식몰",
+      "name": "후지필름 공식",
+      "aliases": [
+        "fujifilm",
+        "후지필름"
+      ]
+    },
+    {
+      "tier": "공식몰",
+      "name": "입생로랑 뷰티 공식",
+      "aliases": [
+        "yslbeauty",
+        "입생로랑",
+        "생로랑"
+      ]
+    },
+    {
+      "tier": "공식몰",
+      "name": "빅토리아시크릿 공식",
+      "aliases": [
+        "victoriassecret",
+        "빅토리아시크릿"
+      ]
+    },
+    {
       "tier": "백화점·대기업몰",
       "name": "SSG닷컴",
       "aliases": [
@@ -163,6 +204,38 @@
       "aliases": [
         "29cm"
       ]
+    },
+    {
+      "tier": "정품 유통",
+      "name": "올리브영",
+      "aliases": [
+        "oliveyoung",
+        "올리브영"
+      ]
+    },
+    {
+      "tier": "정품 유통",
+      "name": "시코르",
+      "aliases": [
+        "chicor",
+        "시코르"
+      ]
+    },
+    {
+      "tier": "정품 유통",
+      "name": "롯데하이마트",
+      "aliases": [
+        "himart",
+        "하이마트"
+      ]
+    },
+    {
+      "tier": "정품 유통",
+      "name": "전자랜드",
+      "aliases": [
+        "etland",
+        "전자랜드"
+      ]
     }
   ],
   "blocked": [
@@ -182,7 +255,6 @@
     "interpark",
     "ebay",
     "aliexpress",
-    "알리",
     "temu",
     "테무",
     "번개장터",
@@ -197,6 +269,13 @@
     "feelway",
     "리본즈",
     "reebonz",
-    "bibandi"
+    "bibandi",
+    "aliexpress",
+    "알리익스프레스",
+    "후루츠패밀리",
+    "fruitsfamily",
+    "보물드랍",
+    "zigzag",
+    "지그재그"
   ]
 }

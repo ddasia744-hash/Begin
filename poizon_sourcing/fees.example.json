@@ -1,11 +1,12 @@
 {
   "_comment": "예시값입니다. POIZON 셀러센터의 카테고리별 수수료·검수비·정산 규정을 확인해 수정하세요.",
-  "commission_rate": 0.10,
+  "commission_rate": 0.1,
   "commission_min": 0,
   "commission_max": 0,
   "fixed_fee": 0,
   "ship_to_poizon": 4000,
   "ship_from_shop": 3000,
   "min_profit": 5000,
-  "target_margin_rate": 0.05
+  "target_margin_rate": 0.05,
+  "min_price_ratio": 0.4
 }

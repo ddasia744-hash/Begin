@@ -8,7 +8,16 @@
     --source naver 로 네이버 쇼핑 API(기존 개발자센터 키 보유자)도 사용 가능.
     --include-unverified 를 주면 신뢰 목록에 없는 쇼핑몰도 '미확인' 등급으로 포함.
 
-입력 CSV 컬럼: model_no, name, poizon_price  (brand 는 선택)
+입력 CSV 컬럼: model_no, name, 그리고 가격(아래 중 하나 이상)
+    poizon_price : 판매 기준가를 직접 지정
+    avg_30d      : 셀러센터 '최근 30일 평균 거래가'
+    cn_exposed   : 셀러센터 '중국 구매자 페이지 노출'가
+  poizon_price 가 비어 있으면 avg_30d·cn_exposed 중 낮은 값(보수적)을 기준가로 쓴다.
+선택 컬럼:
+    brand : 검색어 앞에 붙일 브랜드
+    query : 검색어 직접 지정 (기본: brand + model_no)
+    match : 상품명 일치 조건. 공백=모두 포함, '|'=또는  (기본: model_no)
+            예) "러브누드 글로우|lovenude glow"
 출력 CSV: 조건을 만족한 구입처 목록(순수익 높은 순)
 """
 from __future__ import annotations
@@ -36,15 +45,29 @@ def parse_price(value: str) -> int:
     return int(digits) if digits else 0
 
 
+def base_price(row: dict) -> int:
+    direct = parse_price(row.get("poizon_price", ""))
+    if direct:
+        return direct
+    candidates = [parse_price(row.get(k, "")) for k in ("avg_30d", "cn_exposed")]
+    candidates = [c for c in candidates if c > 0]
+    return min(candidates) if candidates else 0
+
+
 def read_products(path: str) -> list[dict]:
     with open(path, encoding="utf-8-sig", newline="") as f:
         rows = []
         for r in csv.DictReader(f):
             model = (r.get("model_no") or "").strip()
-            price = parse_price(r.get("poizon_price", ""))
+            price = base_price(r)
             if model and price:
-                rows.append({"model_no": model, "name": (r.get("name") or "").strip(),
-                             "brand": (r.get("brand") or "").strip(), "poizon_price": price})
+                brand = (r.get("brand") or "").strip()
+                rows.append({
+                    "model_no": model, "name": (r.get("name") or "").strip(),
+                    "brand": brand, "poizon_price": price,
+                    "query": (r.get("query") or "").strip() or f"{brand} {model}".strip(),
+                    "match": (r.get("match") or "").strip() or model,
+                })
         return rows
 
 
@@ -59,10 +82,13 @@ def find_deals(products: list[dict], cfg: FeeConfig, searcher, per_model: int = 
         limit = max_buy_price(p["poizon_price"], cfg)
         if limit <= 0:
             continue
-        query = f'{p["brand"]} {p["model_no"]}'.strip()
-        offers = naver_shop.filter_offers(searcher(query), p["model_no"])
+        query = p.get("query") or f'{p["brand"]} {p["model_no"]}'.strip()
+        offers = naver_shop.filter_offers(searcher(query), p.get("match") or p["model_no"])
+        floor = p["poizon_price"] * cfg.min_price_ratio
         picked = []
         for o in sorted(offers, key=lambda o: o["price"]):
+            if o["price"] < floor:
+                continue
             if o["price"] > limit:
                 break
             tier, mall = ("-", o["mall"])

@@ -11,7 +11,7 @@ import requests
 
 API_URL = "https://openapi.naver.com/v1/search/shop.json"
 _TAG_RE = re.compile(r"<[^>]+>")
-_NON_ALNUM = re.compile(r"[^0-9a-z]")
+_NON_ALNUM = re.compile(r"[^0-9a-z가-힣]")
 
 # 정품 새상품 리셀에 부적합한 결과를 거르는 키워드
 EXCLUDE_KEYWORDS = ("중고", "리퍼", "가품", "레플", "미러", "B급", "전시상품", "렌탈", "대여")
@@ -25,10 +25,19 @@ def normalize(text: str) -> str:
     return _NON_ALNUM.sub("", (text or "").lower())
 
 
-def title_matches_model(title: str, model_no: str) -> bool:
-    """상품명에 모델번호가 (공백/하이픈 무시하고) 포함되는지. 비슷한 모델 오매칭 방지용."""
-    code = normalize(model_no)
-    return bool(code) and code in normalize(title)
+def title_matches_model(title: str, match: str) -> bool:
+    """상품명이 일치 조건을 만족하는지 (공백/하이픈/대소문자 무시).
+
+    match: '|' 로 나눈 대안 중 하나라도, 그 안의 공백 구분 토큰이 모두 포함되면 True.
+    모델번호 하나만 주면 그 번호 포함 여부. 비슷한 모델 오매칭 방지용.
+    """
+    t = normalize(title)
+    for alt in (match or "").split("|"):
+        tokens = [normalize(x) for x in alt.split()]
+        tokens = [x for x in tokens if x]
+        if tokens and all(x in t for x in tokens):
+            return True
+    return False
 
 
 def search(query: str, client_id: str, client_secret: str, display: int = 100,

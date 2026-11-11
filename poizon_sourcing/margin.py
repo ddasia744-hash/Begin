@@ -20,6 +20,7 @@ class FeeConfig:
     ship_from_shop: int = 3000          # 국내 쇼핑몰 구매 시 배송비(가정)
     min_profit: int = 5000              # 건당 최소 순수익(원)
     target_margin_rate: float = 0.05    # 매입가 대비 최소 수익률
+    min_price_ratio: float = 0.4        # 포이즌가의 이 비율 미만 국내가는 액세서리/오매칭으로 보고 제외
 
     @classmethod
     def load(cls, path: str | None) -> "FeeConfig":

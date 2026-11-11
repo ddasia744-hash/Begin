@@ -69,7 +69,25 @@ def test_parse_price_and_read_products(tmp_path):
     p = tmp_path / "p.csv"
     p.write_text("model_no,name,poizon_price\nJI0079,슈퍼스타,\"₩82,000\"\n,빈값,1000\n", encoding="utf-8")
     assert read_products(str(p)) == [
-        {"model_no": "JI0079", "name": "슈퍼스타", "brand": "", "poizon_price": 82000}]
+        {"model_no": "JI0079", "name": "슈퍼스타", "brand": "", "poizon_price": 82000,
+         "query": "JI0079", "match": "JI0079"}]
+
+
+def test_read_products_uses_lower_of_avg_and_exposed(tmp_path):
+    p = tmp_path / "p.csv"
+    p.write_text("model_no,brand,name,avg_30d,cn_exposed,query,match\n"
+                 "LW3LH6S,룰루레몬,자켓,192000,144000,,\n"
+                 "mini13,후지필름,카메라,128000,--,인스탁스 미니13,미니13|mini13\n", encoding="utf-8")
+    rows = read_products(str(p))
+    assert rows[0]["poizon_price"] == 144000 and rows[0]["query"] == "룰루레몬 LW3LH6S"
+    assert rows[1]["poizon_price"] == 128000 and rows[1]["match"] == "미니13|mini13"
+
+
+def test_match_alternatives_and_korean():
+    m = naver_shop.title_matches_model
+    assert m("입생로랑 러브 누드 워터리 글로우 립", "러브누드 글로우|lovenude")
+    assert m("YSL LoveNude lip", "러브누드 글로우|lovenude")
+    assert not m("입생로랑 러브샤인 립", "러브누드 글로우|lovenude")
 
 
 def test_main_requires_credentials(monkeypatch, tmp_path):
@@ -115,6 +133,15 @@ def test_trust_classify():
     assert t.classify("쿠팡")[0] == "차단"
     assert t.classify("아무샵", "https://www.musinsa.com/p/1")[0] == "정품 유통"
     assert t.classify("아무샵")[0] == "미확인"
+    assert t.classify("세기피앤씨 알리미 김대리")[0] == "미확인"
+
+
+def test_find_deals_skips_suspiciously_cheap_offers():
+    products = [{"model_no": "mini13", "name": "카메라", "brand": "", "poizon_price": 128000}]
+    offers = [{"title": "인스탁스 mini13 케이스", "price": 10900, "mall": "SSG.COM", "url": "u"},
+              {"title": "인스탁스 mini13", "price": 90000, "mall": "SSG.COM", "url": "u2"}]
+    deals = find_deals(products, CFG, lambda q: offers, trust=MallTrust.load())
+    assert [d["shop_price"] for d in deals] == [90000]
 
 
 def test_serper_parse_and_search():
