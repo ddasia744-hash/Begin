@@ -5,6 +5,7 @@
 from __future__ import annotations
 
 import re
+from urllib.parse import quote_plus
 
 import requests
 
@@ -26,6 +27,15 @@ def parse_krw(text) -> int:
     return int(digits) if digits else 0
 
 
+def product_url(item: dict) -> str:
+    """Serper 결과에 link 가 비어 있을 때 구글 쇼핑 상품/검색 페이지 주소를 만든다."""
+    pid = item.get("productId")
+    if pid:
+        return f"https://www.google.com/shopping/product/{pid}?gl=kr&hl=ko"
+    q = f'{item.get("title", "")} {item.get("source", "")}'.strip()
+    return f"https://www.google.com/search?tbm=shop&gl=kr&hl=ko&q={quote_plus(q)}"
+
+
 def search(query: str, api_key: str, num: int = 40,
            session: requests.Session | None = None) -> list[dict]:
     http = session or requests
@@ -45,7 +55,7 @@ def search(query: str, api_key: str, num: int = 40,
             "title": (it.get("title") or "").strip(),
             "price": price,
             "mall": (it.get("source") or "").strip(),
-            "url": it.get("link", ""),
+            "url": it.get("link") or product_url(it),
             "delivery": it.get("delivery", ""),
         })
     return results

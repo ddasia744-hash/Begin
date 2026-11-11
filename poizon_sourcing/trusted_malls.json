@@ -1,25 +1,202 @@
 {
   "_comment": "구매처 신뢰 목록. aliases 는 쇼핑몰 이름/도메인에 포함되면 매칭(대소문자·공백 무시). 자유롭게 추가/삭제하세요.",
   "trusted": [
-    {"tier": "공식몰", "name": "아디다스 공식", "aliases": ["adidas", "아디다스"]},
-    {"tier": "공식몰", "name": "나이키 공식", "aliases": ["nike.com", "나이키"]},
-    {"tier": "공식몰", "name": "뉴발란스 공식", "aliases": ["nbkorea", "newbalance", "뉴발란스"]},
-    {"tier": "공식몰", "name": "켈미 공식", "aliases": ["kelme", "켈미"]},
-    {"tier": "백화점·대기업몰", "name": "SSG닷컴", "aliases": ["ssg", "신세계"]},
-    {"tier": "백화점·대기업몰", "name": "롯데온", "aliases": ["lotteon", "롯데온", "롯데아이몰", "롯데백화점", "ellotte"]},
-    {"tier": "백화점·대기업몰", "name": "현대Hmall", "aliases": ["hmall", "현대hmall", "더현대", "thehyundai", "현대백화점"]},
-    {"tier": "백화점·대기업몰", "name": "갤러리아", "aliases": ["galleria", "갤러리아"]},
-    {"tier": "백화점·대기업몰", "name": "AK몰", "aliases": ["akmall", "ak몰"]},
-    {"tier": "백화점·대기업몰", "name": "GS샵", "aliases": ["gsshop", "gs샵"]},
-    {"tier": "백화점·대기업몰", "name": "CJ온스타일", "aliases": ["cjonstyle", "cj온스타일"]},
-    {"tier": "정품 유통", "name": "무신사", "aliases": ["musinsa", "무신사"]},
-    {"tier": "정품 유통", "name": "ABC마트", "aliases": ["abcmart", "abc-mart", "abc마트", "그랜드스테이지", "grandstage"]},
-    {"tier": "정품 유통", "name": "폴더", "aliases": ["folder", "폴더"]},
-    {"tier": "정품 유통", "name": "슈마커", "aliases": ["shoemarker", "슈마커"]},
-    {"tier": "정품 유통", "name": "W컨셉", "aliases": ["wconcept", "w컨셉"]},
-    {"tier": "정품 유통", "name": "29CM", "aliases": ["29cm"]}
+    {
+      "tier": "공식몰",
+      "name": "아디다스 공식",
+      "aliases": [
+        "adidas",
+        "아디다스"
+      ]
+    },
+    {
+      "tier": "공식몰",
+      "name": "나이키 공식",
+      "aliases": [
+        "nike.com",
+        "나이키"
+      ]
+    },
+    {
+      "tier": "공식몰",
+      "name": "뉴발란스 공식",
+      "aliases": [
+        "nbkorea",
+        "newbalance",
+        "뉴발란스"
+      ]
+    },
+    {
+      "tier": "공식몰",
+      "name": "켈미 공식",
+      "aliases": [
+        "kelme",
+        "켈미"
+      ]
+    },
+    {
+      "tier": "백화점·대기업몰",
+      "name": "SSG닷컴",
+      "aliases": [
+        "ssg",
+        "신세계"
+      ]
+    },
+    {
+      "tier": "백화점·대기업몰",
+      "name": "롯데온",
+      "aliases": [
+        "lotteon",
+        "롯데온",
+        "롯데아이몰",
+        "롯데백화점",
+        "ellotte"
+      ]
+    },
+    {
+      "tier": "백화점·대기업몰",
+      "name": "현대Hmall",
+      "aliases": [
+        "hmall",
+        "현대hmall",
+        "더현대",
+        "thehyundai",
+        "현대백화점"
+      ]
+    },
+    {
+      "tier": "백화점·대기업몰",
+      "name": "갤러리아",
+      "aliases": [
+        "galleria",
+        "갤러리아"
+      ]
+    },
+    {
+      "tier": "백화점·대기업몰",
+      "name": "AK몰",
+      "aliases": [
+        "akmall",
+        "ak몰"
+      ]
+    },
+    {
+      "tier": "백화점·대기업몰",
+      "name": "GS샵",
+      "aliases": [
+        "gsshop",
+        "gs샵"
+      ]
+    },
+    {
+      "tier": "백화점·대기업몰",
+      "name": "CJ온스타일",
+      "aliases": [
+        "cjonstyle",
+        "cj온스타일"
+      ]
+    },
+    {
+      "tier": "백화점·대기업몰",
+      "name": "이랜드몰(NC백화점)",
+      "aliases": [
+        "이랜드몰",
+        "elandmall",
+        "nc백화점"
+      ]
+    },
+    {
+      "tier": "백화점·대기업몰",
+      "name": "LF몰",
+      "aliases": [
+        "lf스퀘어",
+        "lfmall",
+        "lf몰"
+      ]
+    },
+    {
+      "tier": "정품 유통",
+      "name": "무신사",
+      "aliases": [
+        "musinsa",
+        "무신사"
+      ]
+    },
+    {
+      "tier": "정품 유통",
+      "name": "ABC마트",
+      "aliases": [
+        "abcmart",
+        "abc-mart",
+        "abc마트",
+        "그랜드스테이지",
+        "grandstage"
+      ]
+    },
+    {
+      "tier": "정품 유통",
+      "name": "폴더",
+      "aliases": [
+        "folder",
+        "폴더"
+      ]
+    },
+    {
+      "tier": "정품 유통",
+      "name": "슈마커",
+      "aliases": [
+        "shoemarker",
+        "슈마커"
+      ]
+    },
+    {
+      "tier": "정품 유통",
+      "name": "W컨셉",
+      "aliases": [
+        "wconcept",
+        "w컨셉"
+      ]
+    },
+    {
+      "tier": "정품 유통",
+      "name": "29CM",
+      "aliases": [
+        "29cm"
+      ]
+    }
   ],
-  "blocked": ["coupang", "쿠팡", "gmarket", "g마켓", "auction", "옥션", "11번가", "11st",
-              "위메프", "wemakeprice", "티몬", "tmon", "인터파크", "interpark", "ebay", "aliexpress",
-              "알리", "temu", "테무", "번개장터", "중고나라", "당근", "kream", "크림", "솔드아웃"]
+  "blocked": [
+    "coupang",
+    "쿠팡",
+    "gmarket",
+    "g마켓",
+    "auction",
+    "옥션",
+    "11번가",
+    "11st",
+    "위메프",
+    "wemakeprice",
+    "티몬",
+    "tmon",
+    "인터파크",
+    "interpark",
+    "ebay",
+    "aliexpress",
+    "알리",
+    "temu",
+    "테무",
+    "번개장터",
+    "중고나라",
+    "당근",
+    "kream",
+    "크림",
+    "솔드아웃",
+    "mustit",
+    "머스트잇",
+    "필웨이",
+    "feelway",
+    "리본즈",
+    "reebonz",
+    "bibandi"
+  ]
 }
