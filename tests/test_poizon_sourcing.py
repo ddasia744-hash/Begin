@@ -1,7 +1,7 @@
 import csv
 from unittest.mock import MagicMock
 
-from poizon_sourcing import naver_shop, serper_shop
+from poizon_sourcing import naver_shop, serper_shop, web_shop
 from poizon_sourcing.find_deals import find_deals, main, parse_price, read_products
 from poizon_sourcing.trust import MallTrust
 from poizon_sourcing.margin import FeeConfig, max_buy_price, net_profit, payout
@@ -112,6 +112,7 @@ def test_main_writes_csv_naver(monkeypatch, tmp_path):
 
 def test_main_serper_filters_untrusted(monkeypatch, tmp_path):
     monkeypatch.setenv("SERPER_API_KEY", "k")
+    monkeypatch.setattr(web_shop, "search", lambda *a, **k: [])
     monkeypatch.setattr(serper_shop, "search", lambda *a, **k: [
         {"title": "JI0079 슈퍼스타", "price": 40000, "mall": "쿠팡", "url": "https://coupang.com/x"},
         {"title": "JI0079 슈퍼스타", "price": 45000, "mall": "어떤샵", "url": "https://x.example"},
@@ -155,3 +156,34 @@ def test_serper_parse_and_search():
     items = serper_shop.search("JI0079", "k", session=session)
     assert items == [{"title": "JI0079", "price": 60000, "mall": "무신사", "url": "l", "delivery": ""}]
     assert session.post.call_args.kwargs["json"]["gl"] == "kr"
+
+
+def test_parse_product_page_jsonld_and_meta():
+    page = ('<script type="application/ld+json">{"@type":"Product","name":"재킷",'
+            '"offers":{"@type":"Offer","price":"168000","priceCurrency":"KRW",'
+            '"availability":"https://schema.org/OutOfStock"}}</script>')
+    assert web_shop.parse_product_page(page) == {"price": 168000, "in_stock": False, "title": "재킷"}
+    meta = '<title>티셔츠</title><meta property="product:price:amount" content="128000">'
+    assert web_shop.parse_product_page(meta) == {"price": 128000, "in_stock": True, "title": "티셔츠"}
+    assert web_shop.parse_product_page("<html></html>") is None
+
+
+def test_web_search_fetches_only_kept_links():
+    session = MagicMock()
+    session.post.return_value.json.return_value = {"organic": [
+        {"title": "A", "link": "https://www.kolonmall.com/Product/JWJJM26321DGY?srsltid=x", "snippet": ""},
+        {"title": "B", "link": "https://blocked.example/1", "snippet": ""}]}
+    session.get.return_value.status_code = 200
+    session.get.return_value.encoding = "utf-8"
+    session.get.return_value.text = ('<script type="application/ld+json">{"@type":"Product","name":"재킷",'
+                                     '"offers":{"price":168000,"priceCurrency":"KRW"}}</script>')
+    offers = web_shop.search("q", "k", lambda l: "kolonmall" in l["url"], session=session)
+    assert len(offers) == 1 and offers[0]["price"] == 168000 and offers[0]["mall"] == "kolonmall.com"
+    assert "JWJJM26321DGY" in offers[0]["title"] and offers[0]["in_stock"] is True
+    assert session.get.call_count == 1
+
+
+def test_find_deals_skips_out_of_stock():
+    products = [{"model_no": "X1", "name": "", "brand": "", "poizon_price": 100000}]
+    offers = [{"title": "X1", "price": 50000, "mall": "무신사", "url": "u", "in_stock": False}]
+    assert find_deals(products, CFG, lambda q: offers, trust=MallTrust.load()) == []

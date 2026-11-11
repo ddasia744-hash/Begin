@@ -3,6 +3,16 @@
   "trusted": [
     {
       "tier": "공식몰",
+      "name": "코오롱몰(코오롱스포츠 공식)",
+      "aliases": [
+        "kolonmall",
+        "코오롱몰",
+        "코오롱스포츠",
+        "kolonsport"
+      ]
+    },
+    {
+      "tier": "공식몰",
       "name": "아디다스 공식",
       "aliases": [
         "adidas",

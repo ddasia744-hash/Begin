@@ -30,7 +30,7 @@ import time
 
 import requests
 
-from . import naver_shop, serper_shop
+from . import naver_shop, serper_shop, web_shop
 from .margin import FeeConfig, max_buy_price, net_profit
 from .trust import MallTrust
 
@@ -87,7 +87,7 @@ def find_deals(products: list[dict], cfg: FeeConfig, searcher, per_model: int = 
         floor = p["poizon_price"] * cfg.min_price_ratio
         picked = []
         for o in sorted(offers, key=lambda o: o["price"]):
-            if o["price"] < floor:
+            if o["price"] < floor or o.get("in_stock") is False:
                 continue
             if o["price"] > limit:
                 break
@@ -129,6 +129,7 @@ def main(argv: list[str] | None = None) -> int:
     ap.add_argument("--delay", type=float, default=0.15, help="API 호출 간격(초)")
     ap.add_argument("--source", choices=["serper", "naver"], default="serper", help="가격 검색 소스")
     ap.add_argument("--trusted", help="신뢰 쇼핑몰 목록 JSON (기본: trusted_malls.json)")
+    ap.add_argument("--no-web", action="store_true", help="웹 검색+상품 페이지 가격 확인 단계 생략")
     ap.add_argument("--include-unverified", action="store_true", help="신뢰 목록에 없는 쇼핑몰도 포함")
     args = ap.parse_args(argv)
 
@@ -138,8 +139,21 @@ def main(argv: list[str] | None = None) -> int:
             print("SERPER_API_KEY 환경변수를 설정하세요.", file=sys.stderr)
             return 2
 
+        trust_for_web = MallTrust.load(args.trusted)
+
+        def keep_link(link):
+            tier, _ = trust_for_web.classify("", link["url"])
+            return tier != "차단" and (args.include_unverified or tier != "미확인")
+
         def raw_search(query, session):
-            return serper_shop.search(query, key, session=session)
+            offers = serper_shop.search(query, key, session=session)
+            if not args.no_web:
+                # 구글 쇼핑에 안 잡히는 상품용: 웹 검색 → 신뢰몰 상품 페이지에서 가격 직접 확인
+                try:
+                    offers += web_shop.search(query, key, keep_link, session=session)
+                except requests.RequestException as e:
+                    print(f"[경고] '{query}' 웹 검색 실패: {e}", file=sys.stderr)
+            return offers
     else:
         cid, secret = os.environ.get("NAVER_CLIENT_ID"), os.environ.get("NAVER_CLIENT_SECRET")
         if not cid or not secret:
