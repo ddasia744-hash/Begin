@@ -36,3 +36,10 @@ python3 app.py
   직접 접속이 차단되어 있어, 매물 조회 API는 이 환경에서 end-to-end로 테스트하지
   못했습니다. 인터넷 접속이 열린 환경에서 실행해 동작을 확인하세요. 지역 검색
   (`/api/regions`)은 외부 네트워크 없이 완전히 동작을 확인했습니다.
+
+---
+
+## POIZON 리셀 소싱 도우미
+
+`poizon_sourcing/` — 포이즌 최저가 대비 국내 저가 구입처를 찾는 CLI.
+사용법은 [poizon_sourcing/README.md](poizon_sourcing/README.md) 참고.
