@@ -1,8 +1,9 @@
 import csv
 from unittest.mock import MagicMock
 
-from poizon_sourcing import naver_shop
+from poizon_sourcing import naver_shop, serper_shop
 from poizon_sourcing.find_deals import find_deals, main, parse_price, read_products
+from poizon_sourcing.trust import MallTrust
 from poizon_sourcing.margin import FeeConfig, max_buy_price, net_profit, payout
 
 CFG = FeeConfig(commission_rate=0.10, fixed_fee=0, ship_to_poizon=4000,
@@ -72,17 +73,58 @@ def test_parse_price_and_read_products(tmp_path):
 
 
 def test_main_requires_credentials(monkeypatch, tmp_path):
+    monkeypatch.delenv("SERPER_API_KEY", raising=False)
     monkeypatch.delenv("NAVER_CLIENT_ID", raising=False)
     monkeypatch.delenv("NAVER_CLIENT_SECRET", raising=False)
     assert main(["x.csv", "--out", str(tmp_path / "o.csv")]) == 2
+    assert main(["x.csv", "--source", "naver", "--out", str(tmp_path / "o.csv")]) == 2
 
 
-def test_main_writes_csv(monkeypatch, tmp_path):
+def test_main_writes_csv_naver(monkeypatch, tmp_path):
     monkeypatch.setenv("NAVER_CLIENT_ID", "id")
     monkeypatch.setenv("NAVER_CLIENT_SECRET", "secret")
     monkeypatch.setattr(naver_shop, "search", lambda *a, **k: [
-        {"title": "JI0079 슈퍼스타", "price": 50000, "mall": "싼몰", "url": "u1"}])
+        {"title": "JI0079 슈퍼스타", "price": 50000, "mall": "SSG.COM", "url": "u1"}])
+    out = tmp_path / "deals.csv"
+    assert main(["poizon_sourcing/products.example.csv", "--source", "naver",
+                 "--out", str(out), "--delay", "0"]) == 0
+    rows = list(csv.DictReader(open(out, encoding="utf-8-sig")))
+    assert rows and rows[0]["model_no"] == "JI0079" and rows[0]["trust"] == "백화점·대기업몰"
+
+
+def test_main_serper_filters_untrusted(monkeypatch, tmp_path):
+    monkeypatch.setenv("SERPER_API_KEY", "k")
+    monkeypatch.setattr(serper_shop, "search", lambda *a, **k: [
+        {"title": "JI0079 슈퍼스타", "price": 40000, "mall": "쿠팡", "url": "https://coupang.com/x"},
+        {"title": "JI0079 슈퍼스타", "price": 45000, "mall": "어떤샵", "url": "https://x.example"},
+        {"title": "JI0079 슈퍼스타", "price": 50000, "mall": "무신사", "url": "https://musinsa.com/x"}])
     out = tmp_path / "deals.csv"
     assert main(["poizon_sourcing/products.example.csv", "--out", str(out), "--delay", "0"]) == 0
     rows = list(csv.DictReader(open(out, encoding="utf-8-sig")))
-    assert rows and rows[0]["model_no"] == "JI0079"
+    assert [r["mall"] for r in rows] == ["무신사"]
+    out2 = tmp_path / "deals2.csv"
+    assert main(["poizon_sourcing/products.example.csv", "--out", str(out2), "--delay", "0",
+                 "--include-unverified"]) == 0
+    rows = list(csv.DictReader(open(out2, encoding="utf-8-sig")))
+    assert [r["trust"] for r in rows] == ["미확인", "정품 유통"]
+
+
+def test_trust_classify():
+    t = MallTrust.load()
+    assert t.classify("SSG.COM")[0] == "백화점·대기업몰"
+    assert t.classify("쿠팡")[0] == "차단"
+    assert t.classify("아무샵", "https://www.musinsa.com/p/1")[0] == "정품 유통"
+    assert t.classify("아무샵")[0] == "미확인"
+
+
+def test_serper_parse_and_search():
+    assert serper_shop.parse_krw("₩55,000") == 55000
+    assert serper_shop.parse_krw("55,000원") == 55000
+    assert serper_shop.parse_krw("US$40.00") == 0
+    session = MagicMock()
+    session.post.return_value.json.return_value = {"shopping": [
+        {"title": "JI0079", "source": "무신사", "link": "l", "price": "₩60,000"},
+        {"title": "x", "source": "y", "link": "l", "price": "$1"}]}
+    items = serper_shop.search("JI0079", "k", session=session)
+    assert items == [{"title": "JI0079", "price": 60000, "mall": "무신사", "url": "l", "delivery": ""}]
+    assert session.post.call_args.kwargs["json"]["gl"] == "kr"
